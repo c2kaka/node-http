@@ -26,7 +26,6 @@ const server = net
         }
       }
 
-      socket.end();
       console.log(`DATA:\n\n${data}`);
     });
 
