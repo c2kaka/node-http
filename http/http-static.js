@@ -22,17 +22,27 @@ const server = http.createServer((req, res) => {
     if (fs.existsSync(filePath)) {
       // const content = fs.readFileSync(filePath);
 
-      console.log(filePath)
       const { ext } = path.parse(filePath);
+      const stats = fs.statSync(filePath);
+      const timeStamp = req.headers['if-modified-since'];
+      let status = 200;
 
-      res.writeHead(200, {
+      if (timeStamp && Number(timeStamp) === stats.mtimeMs) {
+        status = 304;
+      }
+
+      res.writeHead(status, {
         'Content-Type': mime.getType(ext),
-        'Cache-Control': 'max-age=86400'
+        'Cache-Control': 'max-age=86400',
+        'Last-Modified': stats.mtimeMs,
       });
-      const fileStream = fs.createReadStream(filePath);
-      fileStream.pipe(res);
 
-      // return res.end(content);
+      if (status === 200) {
+        const fileStream = fs.createReadStream(filePath);
+        fileStream.pipe(res);
+      } else if (status === 304) {
+        res.end();
+      }
     }
   } else {
     res.writeHead(404, {'Content-Type': 'text/html'});
