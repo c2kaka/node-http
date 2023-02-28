@@ -25,7 +25,10 @@ const server = http.createServer((req, res) => {
       console.log(filePath)
       const { ext } = path.parse(filePath);
 
-      res.writeHead(200, mime.getType(ext));
+      res.writeHead(200, {
+        'Content-Type': mime.getType(ext),
+        'Cache-Control': 'max-age=86400'
+      });
       const fileStream = fs.createReadStream(filePath);
       fileStream.pipe(res);
 
