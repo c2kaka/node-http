@@ -1,7 +1,6 @@
 {
   "name": "node-http",
   "version": "1.0.0",
-  "type": "module",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "mime": "^3.0.0",
     "url-pattern": "^1.0.3"
   }
 }
