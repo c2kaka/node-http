@@ -7,14 +7,18 @@ function check(rule, pathname) {
     const ruleExp = new RegExp(`^${rule.replace(/:[^/]+/g, '([^/]+)')}$`);
     const ruleMatched = pathname.match(ruleExp);
 
-    if (ruleMatched && paramMatched) {
-        return paramMatched.reduce((acc, cur, index) => {
-            acc[cur.slice(1)] = ruleMatched[index + 1];
-            return acc;
-        }, {});
+    if (!ruleMatched) {
+        return null;
     }
 
-    return null;
+    if (ruleMatched && !paramMatched) {
+        return {};
+    }
+
+    return paramMatched.reduce((acc, cur, index) => {
+        acc[cur.slice(1)] = ruleMatched[index + 1];
+        return acc;
+    }, {});
 }
 
 /*
