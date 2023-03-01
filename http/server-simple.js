@@ -1,5 +1,6 @@
 const http = require('http');
 const Interceptor = require('./interceptor.js');
+const Router = require('./router.js');
 
 class Server {
     constructor() {
@@ -13,7 +14,7 @@ class Server {
                 if (body.pipe) {
                     body.pipe(res);
                 } else {
-                    if (typeof body !== 'string' && res.getHeaders('Content-Type') === 'application/json') {
+                    if (typeof body !== 'string' && res.getHeaders()['content-type'] === 'application/json') {
                         body = JSON.stringify(body);
                     }
                     res.end(body);
@@ -47,12 +48,19 @@ class Server {
 
 // test
 const app = new Server();
+const router = new Router();
 
 app.use(async ({res}, next) => {
     res.setHeader('Content-Type', 'text/html');
     res.body = '<h1>app</h1>';
     await next();
 })
+
+app.use(router.get('/test/:course/:lecture', async ({route, res}, next) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.body = route;
+    await next();
+}));
 
 app.listen({
     port: 8080,
