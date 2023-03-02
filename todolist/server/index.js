@@ -36,7 +36,14 @@ app.use(router.get('/list', async ({ database, res }, next) => {
     const { getList } = require('./model/todolist');
     const data = await getList(database);
     res.body = { data };
+    await next();
+}));
 
+app.use(router.post('/add', async ({database, params, res}, next) => {
+    res.setHeader('Content-Type', 'application/json');
+    const { addTask } = require('./model/todolist');
+    const data = await addTask(database, params);
+    res.body = { data };
     await next();
 }));
 
