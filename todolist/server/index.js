@@ -9,7 +9,8 @@ const url = require('url');
 const zlib = require('zlib');
 const mime = require("mime");
 const cookie = require("./aspects/cookie");
-const {SESSION_KEY, ONE_WEEK} = require("./constants");
+const {SESSION_KEY, ONE_WEEK, USER_SESSION_KEY} = require("./constants");
+const {getList, addTask} = require("./model/todolist");
 
 const app = new Server();
 const router = new Router();
@@ -47,19 +48,43 @@ app.use(async ({ cookie, res }, next) => {
     await next();
 });
 
-app.use(router.get('/list', async ({ database, res }, next) => {
+async function checkLogin(ctx) {
+    const { getSession } = require('./model/session');
+    const userInfo = await getSession(ctx.database, ctx, USER_SESSION_KEY);
+    ctx.userInfo = userInfo;
+    return userInfo;
+}
+
+app.use(router.get('/list', async (ctx, next) => {
+    const { database, res } = ctx;
+    const userInfo = await checkLogin(ctx);
     res.setHeader('Content-Type', 'application/json');
-    const { getList } = require('./model/todolist');
-    const data = await getList(database);
-    res.body = { data };
+
+    if (!!userInfo) {
+        const { getList } = require('./model/todolist');
+        const data = await getList(database, userInfo.id);
+        res.body = { data };
+    } else {
+        res.body = { err: 'please login' };
+    }
+
     await next();
 }));
 
-app.use(router.post('/add', async ({database, params, res}, next) => {
+app.use(router.post('/add', async (ctx, next) => {
+    const { database, params, res } = ctx;
+    const userInfo = await checkLogin(ctx);
     res.setHeader('Content-Type', 'application/json');
-    const { addTask } = require('./model/todolist');
-    const data = await addTask(database, params);
-    res.body = { data };
+
+    if (!!userInfo) {
+        const { addTask } = require('./model/todolist');
+        const data = await addTask(database, params);
+        res.statusCode = 200;
+        res.body = { data };
+    } else {
+        res.statusCode = 403;
+        res.body = { err: 'please login' };
+    }
     await next();
 }));
 
@@ -68,7 +93,6 @@ app.use(router.post('/login', async (ctx, next) => {
     const {database, res} = ctx;
     const { login } = require('./model/user');
     const data = await login(database, ctx);
-    console.log(data);
     res.statusCode = 302;
 
     if (!data) {

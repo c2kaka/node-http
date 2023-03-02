@@ -16,7 +16,6 @@ async function getSession(db, ctx, name) {
 }
 
 async function setSession(db, ctx, name, data) {
-    console.log('setSession', ctx);
     const key = ctx.cookie[SESSION_KEY];
 
     if (!key) {

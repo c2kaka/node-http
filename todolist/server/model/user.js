@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 const { setSession } = require('./session');
-const sessionName = 'userInfo';
+const { USER_SESSION_KEY } = require('../constants');
 
 function getCryptPassword(password) {
     const salt = 'milan';
@@ -13,7 +13,7 @@ async function login(db, ctx) {
 
     if (!!user && user.password === getCryptPassword(password)) {
         const data  = { id: user.id, username };
-        await setSession(sessionName, ctx, sessionName, data);
+        await setSession(db, ctx, USER_SESSION_KEY, data);
         return data;
     }
 

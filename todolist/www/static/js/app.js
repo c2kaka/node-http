@@ -92,6 +92,10 @@ async function saveItem(text) {
         body: `text=${text}&state=0`,
     })).json();
 
+    if (result.err) {
+        return window.location.replace('/login.html');
+    }
+
     return result;
 }
 
