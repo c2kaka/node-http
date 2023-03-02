@@ -8,6 +8,8 @@ const path = require('path');
 const url = require('url');
 const zlib = require('zlib');
 const mime = require("mime");
+const cookie = require("./aspects/cookie");
+const {SESSION_KEY, ONE_WEEK} = require("./constants");
 
 const app = new Server();
 const router = new Router();
@@ -22,6 +24,8 @@ app.use( async ({ req }, next) => {
 
 app.use(param);
 
+app.use(cookie);
+
 app.use(async (ctx, next) => {
     if (!db) {
         db = await open({
@@ -31,6 +35,15 @@ app.use(async (ctx, next) => {
     }
 
     ctx.database = db;
+    await next();
+});
+
+app.use(async ({ cookie, res }, next) => {
+    let id = cookie[SESSION_KEY];
+    if (!id) {
+        id = Math.random().toString(36).slice(2);
+    }
+    res.setHeader('Set-Cookie', `${SESSION_KEY}=${id}; Path=/; Max-Age=${ONE_WEEK}`);
     await next();
 });
 
@@ -47,6 +60,22 @@ app.use(router.post('/add', async ({database, params, res}, next) => {
     const { addTask } = require('./model/todolist');
     const data = await addTask(database, params);
     res.body = { data };
+    await next();
+}));
+
+// login router
+app.use(router.post('/login', async (ctx, next) => {
+    const {database, res} = ctx;
+    const { login } = require('./model/user');
+    const data = await login(database, ctx);
+    console.log(data);
+    res.statusCode = 302;
+
+    if (!data) {
+        res.setHeader('Location', '/login.html');
+    } else {
+        res.setHeader('Location', '/');
+    }
     await next();
 }));
 

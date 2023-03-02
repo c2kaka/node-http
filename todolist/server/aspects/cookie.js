@@ -1,7 +1,7 @@
 async function cookie(ctx, next) {
     // generate cookies on ctx
     const { req } = ctx;
-    const cookieStr = encodeURIComponent(req.headers.cookie);
+    const cookieStr = decodeURIComponent(req.headers.cookie);
     const cookies = cookieStr.split(/\s*;\s*/);
     ctx.cookie = {};
     cookies.forEach((_c) => {
@@ -10,3 +10,5 @@ async function cookie(ctx, next) {
     })
     await next();
 }
+
+module.exports = cookie;
