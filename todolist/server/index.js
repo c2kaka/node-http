@@ -12,14 +12,22 @@ const cookie = require("./aspects/cookie");
 const {SESSION_KEY, ONE_WEEK, USER_SESSION_KEY} = require("./constants");
 const {getList, addTask} = require("./model/todolist");
 
-const app = new Server();
+const app = new Server({instances: 1, mode: 'development'});
 const router = new Router();
 
 const dbFile = path.resolve(__dirname, '../database/todolist.db');
 let db = null;
+let count = 0;
+
+process.on('message', (message) => {
+    if (message === 'count') {
+        console.log('visit count: %d', ++count);
+    }
+})
 
 app.use( async ({ req }, next) => {
-    console.log(`${req.method} ${req.url}`);
+    process.send('count');
+    console.log(`visit ${req.url} through worker: ${app.worker.process.pid}, haha`);
     await next();
 });
 
